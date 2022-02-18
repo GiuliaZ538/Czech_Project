@@ -1,6 +1,14 @@
 #####Mapping damaged reads to consensus reference of mitogenomes########
 
-1. #EXTRACT READS FROM FQ FILES 
+##Tools
+bowtie2-build, bowtie2-align (v. 2.3.2)
+mafft (v7.427)
+raxml-ng (v. 0.8.1 BETA)
+angsd (v. 0.928)
+Geneious Prime (v. 2021.2.2 )
+Jalview (v. 2.11.0)
+
+1. ###Create fastq file with taxa of interest
 
 #Print sample list based on name files
 ll *lca | awk '{print $}' > sample.list
@@ -9,7 +17,7 @@ ll *lca | cut -f2 -d: | cut -f2 -d " " > sample.list
 ##Taxalist
 nano name_genus
 
-###CREATE FILES based on SAMPLE.list and Taxa.list
+##Create txt file with all readIDs
 while read -r line
 do
 arr=($line)
@@ -19,14 +27,14 @@ echo $lib
 cat taxa.list | parallel -j20 "grep {} $lib | cut -f1,2,3,4,5,6,7 -d: > $lib.{}.readID.txt"
 done < sample.list
 
-##RMOVE 0 lines in file were not found name_genus
+##Remove file were not found name_genus
 wc -l *.readID.txt| awk '$1 == 0' | awk '{print $2}' > rm.list
 cat rm.list | parallel -j20 "rm {}"
 
-#CREATE file tot sequences found per sample
+#Create file tot sequences found per sample
 wc -l *.readID.txt| paste > tot_genus_sequences.txt
 
-#EXTRACTION 
+#Create fastq from readIDs
 for infile in *readID.txt
 do
 bname=$(basename $infile)
@@ -38,19 +46,7 @@ seqtk subseq fq_link/*$bname2*rmdup.fq $bname > $bname1 &
   #seqtk seq -a $bname1 > $bname1.fa ##NOTHING IN IT conversion into fasta didnt work
   done
 
-###IF IN BLANK FOUND SEQUENCE: REMOVE IT from all!!
-for infile in /willerslev/users-shared/science-snm-willerslev-mxd270/MetaDMG_CzechALL/VM/LCA_95/*.Canis.fq
-do
-bname=$(basename $infile)
-echo $bname
-fastq-grep -v 'GATAGAGTGTTCCTAACCACTTCTGGTTTGGTGCTACCCACCAGCTGGAATTAATTTTT' $bname > grep_$bname
-done
-
-OR
-
-fastq-grep -i read_ID $bname > grep2_$bname
-
-##Crete symbolic links of FQ files to new folder
+##Crete symbolic links of fastq files to new folder
 for file in PATHfqfiles_extracted/*.readID.fq
 do
 bname=$(basename $file)
@@ -58,8 +54,8 @@ echo $bname
 ln -s $file PATH_new_folder
 done
 
-2. ##PREPARE FASTA REFERENCE files
-###Check duplicates with Jalview and remove them if any.
+2. ##Prepare fasta reference files
+#Check duplicates with Jalview software and remove them if any.
 
 ###Be sure to have removed tab and , " , ' , : from sequence!
 sed "s/:/_/g" in.fa > out.fa
@@ -69,20 +65,21 @@ sed "s/__/_/g" in.fa > out.fa
 sed "s/(/./g" in.fa > out.fa 
 sed "s/)/./g" in.fa > out.fa
 
-##ALignment 
+#Alignment references
 mafft --thread 40 --leavegappyregion in_to_align.fa > out_aligned.fa
 
-##CHecking Tree of Reference
+#if needed a consensus of the references
+Make Consensus Sequence with Geneious software: use the most common base, and ignore gaps
+
+#Checking tree of of the reference
 raxml-ng --search1 --msa in_aligned.fa --model GTR+G --prefix Out_name --threads 2 --seed 2
-#If some WARNINGS, run the Reduced.phy files to get clean Tree.
+#If some warnings, run the Reduced.phy files to get a clean Tree.
 
-##Build indexes for DATABASE
+#Build indexes for database
 bowtie2-build -f in_aligned.fa out_db
+bowtie2-inspect -s in.fa #you can inspect file the Database 
 
-#you can inspect file the Database with 
-#willerslev/software/bowtie2/bowtie2-inspect -s in.fa
-
-3. ##MAPPING readID.fq files with the Reference database just created
+3. ##Mapping readID.fq files to the reference database 
 for file in *.fq
 do
 db=OVISclean2c_db
@@ -91,23 +88,22 @@ bowtie2 -x $db -U $file --threads 60 --no-unal | samtools view -bS -> $file.bam
 angsd -doFasta 2 -doCounts 1  -i $file.bam -out $file.consensus.fa
 done
 ----------------------
-  3.1 ############## for making individual consensus split the fastq from each genome into one read fastq's THIS IS JUST SPLITTING READS TO MAP EACH READ in the TRee.
+3.1 # for making individual consensus split the fastq from each genome into one read fastq
 for file in *.fq
 do
 split -l 4 $file $file.prefix.fq &
   done
 
-######## then map all individual reads against the reference
+# then map all individual reads against the reference
 for file in *prefix*
   do
 db=in_db
 fasta=in_aligned.fa
 bowtie2 -x $db -U $file --threads 60 --no-unal | samtools view -bS -> $file_split.bam
-#angsd -doFasta 2 -doCounts 1  -i $file_split.bam -out $file.consensus.fa
+angsd -doFasta 2 -doCounts 1  -i $file_split.bam -out $file.consensus.fa
 done
 -------------------------
-  
-  4. ####BAMCOV outputs
+4. ##Bamcov outputs
 for file in *.bam
 do
 samtools sort -O BAM -o sort_$file $file
@@ -176,4 +172,7 @@ mafft --thread 40 --leavegappyregion Ref_Cons_reads.fa > Ref_Cons_reads_aligned.
 raxml-ng --search1 --msa Ref_Cons_reads_aligned.fa --model GTR+G --prefix OVis_CR_Cybt_ALL --threads 2 --seed 2 
 
 ####TO GET A FILE WITH REDUCED TREE: WITHOUT identical sequences and/or undetermined columns.  
-raxml-ng --search1 --msa reduced.phy --model GTR+G --prefix Reduced --threads 2 --seed 2  
+raxml-ng --search1 --msa reduced.phy --model GTR+G --prefix Reduced --threads 2 --seed 2 
+
+###REFERENCES Tools
+
