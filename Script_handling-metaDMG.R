@@ -76,27 +76,33 @@ p2 <- ggplot(data=subset1, aes(x=D_max, y=depth))
 
 ###Visualization of datasets with box plot/violin plot 
 ##Plotting damage per sample
-p1b <- ggplot(subset1, aes(x=D_max, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Damage distribution per sample") +
+p1d <- ggplot(subset1, aes(x=D_max, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + +theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Damage distribution per sample") +
   xlab("D_max") + ylab("Depth") + scale_y_discrete(limits=rev)
 
+#Plotting damage per taxa
+p2d <-ggplot(dm2, aes(x=D_max, y=tax_name)) + geom_boxplot() + theme_minimal() + ggtitle("Damage per taxa") + ylab("Taxa") + xlab("D-max")
+
 #Damage vs Material (factor=Kingdom)
-p2b <- subset1 %>%
+p3d <- subset1 %>%
   mutate(Material = fct_relevel(Material,
                                 "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
   ggplot(aes(x=D_max, y=Material)) + geom_boxplot(aes(x=D_max, y=Material,fill=Kingdom))
-p2b + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p3d + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
 
-##Plotting mean_L
-p3b <- ggplot(subset1, aes(x=mean_L, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Meanlength distribution per sample") +
+##Plotting mean_L per sample
+p1m <- ggplot(subset1, aes(x=mean_L, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Meanlength distribution per sample") +
   xlab("Mean_L") + ylab("Depth") + scale_y_discrete(limits=rev)
 
+#Mean length per taxa 
+p2m <-ggplot(dm2, aes(x=mean_L, y=tax_name)) + geom_boxplot() + theme_minimal() + ggtitle("Mean read lengths per taxa") + ylab("Taxa") + xlab("Mean Length (Bp)")
+
 #Mean length vs Material (factor=Kingdom)
-p2b <- subset1 %>%
+p3m <- subset1 %>%
   mutate(Material = fct_relevel(Material,
                                 "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
   ggplot(aes(x=mean_L, y=Material)) + geom_boxplot(aes(x=mean_L, y=Material,fill=Kingdom))
-p2b + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p3m + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
 
 ##Pollen diagram for plant data
