@@ -52,3 +52,46 @@ subset_genus <- output3_data %>% filter(D_max > 0.000, N_reads > 20, grepl("\\bg
 subset1 <- output3_data %>% filter(D_max > 0.05, lambda_LR > 10, grepl("Viridiplantae", tax_path))
 subset2 <- output3_data %>% filter(D_max > 0.02, N_reads > 100, lambda_LR > 5, grepl("Metazoa", tax_path))
 subset3 <- output3_data %>% filter (N_reads > 50, grepl("Bacteria", Kingdom))
+
+##Overview of the data_D-max_vs_lambda_LR
+# counting number of unique samples for number of different symbols
+f <- length(unique(subset1$sample))
+#plotting  D_max vs lambda_LR
+ggplot(subset1, aes(y=D_max, x=lambda_LR)) + geom_point(aes(col=tax_name, size=N_reads,shape=sample)) 
++ scale_shape_manual(values=1:f) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) 
++ scale_x_continuous(breaks =seq(0,150, by=10), limits=c(0,150)) + scale_y_continuous(breaks =seq(0,0.6, by=0.05))
++ ggtitle("Damage vs LR_output3") +
+xlab("likelihood ratio (lambda_LR) for fitting the beta binomial 'DNA damage' model") + ylab("D_max")
+
+##Plotting Damage_vs_depth
+ggplot(data=subset1, aes(x=D_max, y=depth))
+  + geom_point(aes(colour = factor(tax_name), size = N_reads))
+  + scale_x_continuous(breaks =seq(0,0.6, by = 0.05), limits=c(0,0.6))
+  + scale_y_reverse(breaks=rev(subset1$depth), limits = c(460,0)) #limits of the depth_data
+ + ggtitle("Damage vs Depth") +
+  xlab("D-max") + ylab("Depth")
+
+#Pollen diagram for plant data
+# wide table with N_reads as variable
+data_wide1_subset1 <- dcast(subset1, depth ~ tax_name, value.var="N_reads") #N_reads each depth(=each sample)
+data_wide2_subset1 <- dcast(subset1, Material ~ tax_name, value.var="N_reads", sum) #sum of reads each material type (includes more samples)
+
+n <- ncol(data_wide1_subset1)
+dw1 <- data_wide1_subset1[,2:n]
+dw1[is.na(dw1)] <-0 
+
+dw1_perc <- prop.table(data.matrix(dw1), margin=1)*100 # makes proportion table, margin 1 (per each depth)
+dw2_perc <- prop.table(data.matrix(dw1), margin=2)*100 # makes proportion table, margin 2 (per each taxa)
+rowSums(dw1_perc) # should give 100 for each row
+colSums(dw2_perc) # should give 100 for each column
+
+#Strat.plot() function using package "LaRioja" 
+y.scale <- c(50,150,200,250,325,460) #setting y axis by depths
+p.col <- c("forestgreen") # setting color bars
+
+#Plot with bars for each row
+pol.plot1 <- strat.plot(dw1_perc, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.line=FALSE, plot.poly=TRUE, plot.bar=TRUE, col.bar="black", col.poly=p.col, col.poly.line="black", scale.percent=TRUE, wa.orde="topleft", xSpace=0.001, x.pc.lab=5, x.pc.omit0=TRUE, las=2)
+
+#Filled plot with bars
+pol.plot2 <- strat.plot(dw1_perc, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.line=FALSE, plot.poly=FALSE, plot.bar=TRUE, col.bar=p.col, lwd.bar=10, scale.percent=TRUE, wa.orde="topleft", xSpace=0.01, x.pc.lab=5, x.pc.omit0=5, las=2)
+
