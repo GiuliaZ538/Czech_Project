@@ -48,15 +48,15 @@ output3_data <- output2_data %>%
 output3_data[is.na(output3_data)] <- "Control"
 output3_data$Kingdom[output3_data$Kingdom == "Control"] <- "Indet"
 
-#Subset dataframe to show only genus, filtering reads
+#Subset dataframe to show only genus level, filtering reads
 subset_genus <- output3_data %>% filter(D_max > 0.000, N_reads > 20, grepl("\\bgenus\\b", tax_rank))
 
-#Other subsets for parsing reads, for ex. plants, animals, filtering D_max, lambda_LR.
+#Other subsets for filtering the data, for ex. plants, animals, filtering D_max, lambda_LR...
 subset1 <- output3_data %>% filter(D_max > 0.05, lambda_LR > 10, grepl("Viridiplantae", tax_path))
 subset2 <- output3_data %>% filter(D_max > 0.02, N_reads > 100, lambda_LR > 5, grepl("Metazoa", tax_path))
 subset3 <- output3_data %>% filter (N_reads > 50, grepl("Bacteria", Kingdom))
 
-##Overview of the data_D-max_vs_lambda_LR
+##Overview of the data D-max vs lambda_LR
 # counting number of unique samples for number of different symbols
 f <- length(unique(subset1$sample))
 #plotting  D_max vs lambda_LR
@@ -81,12 +81,10 @@ p3 <- ggplot(subset1, aes(y=D_max, x=mean_L)) + geom_point(aes(col=sample, size=
 + ggtitle("Damage vs mean length") +
   xlab("Mean length (BP)") + ylab("D-max")
 
-##Checking presence Taxa per Material and their damage (using factor=lambda_LR >10)
-p5 <- ggplot(subset1, aes(y=Material, x=tax_name)) + geom_point(aes(col=lambda_LR_new, size=N_reads)) 
-+ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1))
-+ ggtitle("Presence of taxa and their damage threshold") +
-  xlab("Taxa") + ylab("Material")
-  
+##Checking presence Taxa per layer and their damage factor (using factor=lambda_LR >10)
+p5 <- ggplot(VM_ALL20K2LR_tres, aes(y=Material, x=tax_name)) + geom_point(aes(x=tax_name, y=Material, col=lambda_LR_new, size=N_reads)) + geom_line(aes(group = tax_name))
+p5 + theme_minimal() + ggtitle("Presence of taxa and their damage threshold") + xlab ("Taxa") + ylab("Material")
+
 ###Visualization of datasets with box plot/violin plot 
 #Plotting damage per sample
 p1d <- ggplot(subset1, aes(x=D_max, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + +theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Damage distribution per sample") +
@@ -132,7 +130,7 @@ dw2_perc <- prop.table(data.matrix(dw1), margin=2)*100 # makes proportion table,
 rowSums(dw1_perc) # should give 100 for each row
 colSums(dw2_perc) # should give 100 for each column
 
-#Strat.plot() function using package "LaRioja" 
+#Strat.plot() function using package "rioja" 
 y.scale <- c(50,150,200,250,325,460) #setting y axis by depths
 p.col <- c("forestgreen") # setting color bars
 
