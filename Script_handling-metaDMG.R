@@ -25,7 +25,10 @@ names(df)[names(df) == 'new'] <- 'Depth'
 df$new <- context_data$Date[match(df$sample, context_data$Sample_ID)]
 names(df)[names(df) == 'new'] <- 'Date'
 
-##Adding factor for filtering (to keep updated based on the variable used)
+df$new <- context_data$Material[match(df$sample, context_data$Sample_ID)]
+names(df)[names(df) == 'new'] <- 'Material'
+
+##Adding factor that correspond to the threshold applied (to keep updated based on the variable used)
 output1_data <- df
 
 output2_data <- output1_data %>%   # overwriting our data frame
@@ -57,22 +60,47 @@ subset3 <- output3_data %>% filter (N_reads > 50, grepl("Bacteria", Kingdom))
 # counting number of unique samples for number of different symbols
 f <- length(unique(subset1$sample))
 #plotting  D_max vs lambda_LR
-ggplot(subset1, aes(y=D_max, x=lambda_LR)) + geom_point(aes(col=tax_name, size=N_reads,shape=sample)) 
+p1 <- ggplot(subset1, aes(y=D_max, x=lambda_LR)) + geom_point(aes(col=tax_name, size=N_reads,shape=sample)) 
 + scale_shape_manual(values=1:f) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) 
 + scale_x_continuous(breaks =seq(0,150, by=10), limits=c(0,150)) + scale_y_continuous(breaks =seq(0,0.6, by=0.05))
 + ggtitle("Damage vs LR_output3") +
 xlab("likelihood ratio (lambda_LR) for fitting the beta binomial 'DNA damage' model") + ylab("D_max")
 
 ##Plotting Damage_vs_depth
-ggplot(data=subset1, aes(x=D_max, y=depth))
+p2 <- ggplot(data=subset1, aes(x=D_max, y=depth))
   + geom_point(aes(colour = factor(tax_name), size = N_reads))
   + scale_x_continuous(breaks =seq(0,0.6, by = 0.05), limits=c(0,0.6))
   + scale_y_reverse(breaks=rev(subset1$depth), limits = c(460,0)) #limits of the depth_data
  + ggtitle("Damage vs Depth") +
   xlab("D-max") + ylab("Depth")
 
-#Pollen diagram for plant data
-# wide table with N_reads as variable
+###Visualization of datasets with box plot/violin plot 
+##Plotting damage per sample
+p1b <- ggplot(subset1, aes(x=D_max, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Damage distribution per sample") +
+  xlab("D_max") + ylab("Depth") + scale_y_discrete(limits=rev)
+
+#Damage vs Material (factor=Kingdom)
+p2b <- subset1 %>%
+  mutate(Material = fct_relevel(Material,
+                                "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
+  ggplot(aes(x=D_max, y=Material)) + geom_boxplot(aes(x=D_max, y=Material,fill=Kingdom))
+p2b + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+#changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
+
+##Plotting mean_L
+p3b <- ggplot(subset1, aes(x=mean_L, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Meanlength distribution per sample") +
+  xlab("Mean_L") + ylab("Depth") + scale_y_discrete(limits=rev)
+
+#Mean length vs Material (factor=Kingdom)
+p2b <- subset1 %>%
+  mutate(Material = fct_relevel(Material,
+                                "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
+  ggplot(aes(x=mean_L, y=Material)) + geom_boxplot(aes(x=mean_L, y=Material,fill=Kingdom))
+p2b + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+#changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
+
+##Pollen diagram for plant data
+#Wide table with N_reads as variable
 data_wide1_subset1 <- dcast(subset1, depth ~ tax_name, value.var="N_reads") #N_reads each depth(=each sample)
 data_wide2_subset1 <- dcast(subset1, Material ~ tax_name, value.var="N_reads", sum) #sum of reads each material type (includes more samples)
 
