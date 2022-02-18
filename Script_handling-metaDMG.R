@@ -74,8 +74,21 @@ p2 <- ggplot(data=subset1, aes(x=D_max, y=depth))
  + ggtitle("Damage vs Depth") +
   xlab("D-max") + ylab("Depth")
 
+##Plotting distribution mean_L vs damage
+p3 <- ggplot(subset1, aes(y=D_max, x=mean_L)) + geom_point(aes(col=sample, size=N_reads)) 
++ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) 
++ scale_y_continuous(breaks =seq(0,0.6, by=0.05))
++ ggtitle("Damage vs mean length") +
+  xlab("Mean length (BP)") + ylab("D-max")
+
+##Checking presence Taxa per Material and their damage (using factor=lambda_LR >10)
+p5 <- ggplot(subset1, aes(y=Material, x=tax_name)) + geom_point(aes(col=lambda_LR_new, size=N_reads)) 
++ theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1))
++ ggtitle("Presence of taxa and their damage threshold") +
+  xlab("Taxa") + ylab("Material")
+  
 ###Visualization of datasets with box plot/violin plot 
-##Plotting damage per sample
+#Plotting damage per sample
 p1d <- ggplot(subset1, aes(x=D_max, y=sample, fill=sample)) + geom_violin(width=1.4) + geom_boxplot(width=0.1, color="grey", alpha=0.2) + +theme_minimal() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + ggtitle("Damage distribution per sample") +
   xlab("D_max") + ylab("Depth") + scale_y_discrete(limits=rev)
 
@@ -86,7 +99,7 @@ p2d <-ggplot(dm2, aes(x=D_max, y=tax_name)) + geom_boxplot() + theme_minimal() +
 p3d <- subset1 %>%
   mutate(Material = fct_relevel(Material,
                                 "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
-  ggplot(aes(x=D_max, y=Material)) + geom_boxplot(aes(x=D_max, y=Material,fill=Kingdom))
+  ggplot(aes(x=D_max, y=Material)) + geom_boxplot(aes(x=D_max, y=Material,fill=Kingdom))+ geom_jitter()
 p3d + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
 
@@ -101,7 +114,7 @@ p2m <-ggplot(dm2, aes(x=mean_L, y=tax_name)) + geom_boxplot() + theme_minimal() 
 p3m <- subset1 %>%
   mutate(Material = fct_relevel(Material,
                                 "laminated-clay-sand","clayey-gyttja", "impure-sand", "Control")) %>%
-  ggplot(aes(x=mean_L, y=Material)) + geom_boxplot(aes(x=mean_L, y=Material,fill=Kingdom))
+  ggplot(aes(x=mean_L, y=Material)) + geom_boxplot(aes(x=mean_L, y=Material,fill=Kingdom)) + geom_jitter()
 p3m + theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #changing factor with the threshold applied (fill=lambda_LR_new) it is possible to distinguish damaged-not damaged reads.
 
