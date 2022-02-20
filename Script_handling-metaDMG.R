@@ -82,8 +82,8 @@ p3 <- ggplot(subset1, aes(y=D_max, x=mean_L)) + geom_point(aes(col=sample, size=
   xlab("Mean length (BP)") + ylab("D-max")
 
 ##Checking presence Taxa per layer and their damage factor (using factor=lambda_LR >10)
-p5 <- ggplot(VM_ALL20K2LR_tres, aes(y=Material, x=tax_name)) + geom_point(aes(x=tax_name, y=Material, col=lambda_LR_new, size=N_reads)) + geom_line(aes(group = tax_name))
-p5 + theme_minimal() + ggtitle("Presence of taxa and their damage threshold") + xlab ("Taxa") + ylab("Material")
+p5 <- ggplot(subset1, aes(y=Material, x=tax_name)) + geom_point(aes(x=tax_name, y=Material, col=lambda_LR_new, size=N_reads)) + geom_line(aes(group = tax_name))
+p5 + theme_minimal() + ggtitle("Presence of taxa and their damage") + xlab ("Taxa") + ylab("Material")
 
 ###Visualization of datasets with box plot/violin plot 
 #Plotting damage per sample
