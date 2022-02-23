@@ -140,3 +140,10 @@ pol.plot1 <- strat.plot(dw1_perc, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.
 #Filled plot with bars
 pol.plot2 <- strat.plot(dw1_perc, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.line=FALSE, plot.poly=FALSE, plot.bar=TRUE, col.bar=p.col, lwd.bar=10, scale.percent=TRUE, wa.orde="topleft", xSpace=0.01, x.pc.lab=5, x.pc.omit0=5, las=2)
 
+#Exaggerated curve to visualise low abundance taxa (only for fillen plot with bars)
+# Specify which pollen types
+ex <- c(rep(TRUE, times=3), rep(FALSE, times=2), TRUE, rep(FALSE, times=2), rep(TRUE, times=8), FALSE, rep(TRUE, times=2), FALSE, FALSE, TRUE)
+
+# Filled plot with exaggeration curve
+pol.plot <- strat.plot(dwDH_B2_1, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.line=FALSE, plot.poly=TRUE,plot.bar=TRUE, col.bar="black", col.poly=p.col, col.poly.line="black", scale.percent=TRUE, wa.orde="topleft", xSpace=0.01, x.pc.lab=TRUE, x.pc.omit0=TRUE,las=2, exag=ex, col.exag="auto", exag.alpha=0.50, exag.mult=10)
+
