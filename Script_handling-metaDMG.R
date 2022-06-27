@@ -35,7 +35,7 @@ output2_data <- output1_data %>%   # overwriting our data frame
   mutate(lambda_LR_new =   # creating our new column
            ifelse(lambda_LR > 10, "LR>10", "LR<10"))
 
-##Adding grouping factor on Kingdoms
+##Adding grouping factor by Kingdoms
 output3_data <- output2_data %>% 
   mutate(Kingdom =   # creating our new column
            case_when(grepl("Viridiplantae", tax_path) ~ "Viridiplantae",
@@ -147,3 +147,14 @@ ex <- c(rep(TRUE, times=3), rep(FALSE, times=2), TRUE, rep(FALSE, times=2), rep(
 # Filled plot with exaggeration curve
 pol.plot <- strat.plot(dw1_perc, yvar=y.scale, y.tks=y.scale, y.rev=TRUE, plot.line=FALSE, plot.poly=TRUE,plot.bar=TRUE, col.bar="black", col.poly=p.col, col.poly.line="black", scale.percent=TRUE, wa.orde="topleft", xSpace=0.01, x.pc.lab=TRUE, x.pc.omit0=TRUE,las=2, exag=ex, col.exag="auto", exag.alpha=0.50, exag.mult=10)
 
+#Taxonomic profiles - abundance barplot
+p5 <- subset2 %>%
+  mutate(sample = fct_relevel(sample,
+                              "name4","name3","name2","name1"))%>%
+  ggplot(aes(x=N_reads, y=sample)) + 
+  facet_wrap(~tax_rank, scales = "free", ncol = 3) +
+  geom_bar(stat="identity", aes(fill = tax_name), position = "fill", width=0.4) +
+  scale_fill_manual(values = c("#006400","#8A2BE2","#009ACD","#66CD00","#458B74","#79CDCD","#E9967A","#EE6AA7", "#737373", "#FFB6C1", "#8B4500","#8FBC8F", "#008B8B"))+
+  scale_x_continuous(labels = percent_format()) +
+  theme_minimal()
+p5 + ggtitle("Viridiplantae - Taxonomic abundance")
