@@ -105,10 +105,10 @@ echo Mapping $bname.fq against $DB
 bowtie2 --threads 40 -k 1000 -x $DB -U adap2_kmer2_$bname.pp.rmdup.fq --no-unal | samtools view -bS - > $bname.$(basename $DB).bam
 done
 
-for DB in /database/microbial_dbs/GTDB/r89/bowtie2/gtdb_r89
+for DB in /database/refseq_23dec2020/plant/plant.?
 do
 echo Mapping $bname.fq against $DB
-bowtie2 --threads 80 -k 1000 -x $DB -U adap2_kmer2_$bname.pp.rmdup.fq --no-unal | samtools view -bS - > $bname.$(basename $DB).bam
+bowtie2 --threads 40 -k 1000 -x $DB -U adap2_kmer2_$bname.pp.rmdup.fq --no-unal | samtools view -bS - > $bname.$(basename $DB).bam
 done
 
 for DB in /database/refseq_23dec2020/protozoa/protozoa.fa
