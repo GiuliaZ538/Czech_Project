@@ -156,23 +156,12 @@ echo $bname2
 /willerslev/software/bbmap/rename.sh in=$bname out=$bname.fasta prefix=$bname2
 done
 
-#then (to have both 95 and 98 simil. in alignment) - change name consensus reads 98 sim.
-for infile in *_98.fa
-do
-bname=$(basename $infile)
-echo $bname
-/willerslev/software/bbmap/rename.sh in=$bname out=$bname.fasta prefix=$bname
-done
-
-6. ###Alignment and Tree building
+6. ###Alignment and Tree building/CHECK BEAST
 cat *consensus.fasta Ref_not_aligned.fa > Allref_mycons.fa
 
 mafft --thread 40 --leavegappyregion Ref_Cons_reads.fa > Ref_Cons_reads_aligned.fa
 
 raxml-ng --search1 --msa Ref_Cons_reads_aligned.fa --model GTR+G --prefix OVis_CR_Cybt_ALL --threads 2 --seed 2 
-
-####TO GET A FILE WITH REDUCED TREE: WITHOUT identical sequences and/or undetermined columns.  
-raxml-ng --search1 --msa reduced.phy --model GTR+G --prefix Reduced --threads 2 --seed 2 
 
 ###REFERENCES Tools
 
