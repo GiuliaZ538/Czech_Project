@@ -1,5 +1,5 @@
 library(dplyr)
-library (readr)
+library(readr)
 library(ggplot2)
 library(tidyverse)
 library(scales)
@@ -13,6 +13,43 @@ library(forcats)
 library(tidytext)
 
 #####Supplementary Figures 2
+##Rarefaction with Vegan package
+#make wide table from meaDMG output
+sample <- metaDMGoutput$sample
+tax_id <- metaDMGoutput$tax_name
+reads<- metaDMGoutput$N_reads
+
+raw <- data.frame(tax_id, sample, reads)
+
+data_wide <- dcast(raw, tax_id ~ sample, value.var = "reads", fun.aggregate = sum)
+head(data_wide) 
+
+#Parsing reads for median of reads or median of sequencing depth
+k <- ncol(data_wide)
+dd = data_wide[,2:k]
+rownames(dd) <- data_wide$tax_id
+
+colSums(dd)
+col <- median.default(colSums(dd))/2 #median sequencing depth
+row <- median.default(rowSums(dd))/2 #median reads
+
+drop <- colSums(dd) > col
+dd1 <- dd[c(drop)]
+dd1a <- as.data.frame(t(dd1))
+#drop4 <- colSums(dd1a) > row ##drop the median reads each row
+#dd2 <- dd1a[c(drop4)]
+#dd2a <- as.data.frame(t(dd2))
+
+#Data_t1=as.data.frame(t(dd100a)) #transpose columns-rows for rarecurve
+S <- specnumber(dd1a) # observed number of species
+raremax <- min(rowSums(dd1a)) #rarefy the sample counts to he minimum sample count
+raremax
+Srare <- rarefy(dd1a, raremax)
+
+plot(S, Srare, xlab = "Observed No. of Genuses", ylab = "Rarefied No. of Genuses")
+abline(0, 1)
+out <- rarecurve(dd22a, step = 20, sample = raremax, col = "blue", cex = 0.6)
+
 ##Scatter plot Discarded
 #subset
 subset_plant <- MetaCzechBayesian %>% filter(D_max > 0.0000, N_reads > 100,  grepl("Viridiplant",tax_path), grepl("VM", sample), grepl("\\bgenus\\b", tax_rank))
@@ -94,8 +131,34 @@ p1b
 
 grid.arrange(p1, p1a, p1b, ncol = 3, nrow = 1)
 
-###Supplementary Figures 3
-######metaDMG_make wide table - abundance indexes
+####Supplementary Figures 3
+##Read Length Distribution
+
+
+##Boxplot Depth vs Bayesian D-max
+#Boxplot all reads
+subset_all_genus <- MetaCzechBayesian %>% filter(D_max > 0.0000, N_reads > 100, grepl("VM", sample), grepl("\\bgenus\\b", tax_rank))
+
+p6d <- subset_all_genus %>%
+  mutate(Depth = fct_relevel(Depth,
+                             "236","222","196","185","151","134","116","107","64", "26", "18")) %>%
+  ggplot(aes(x=D_max, y=Depth)) + geom_boxplot(aes(x=D_max, y=Depth, col=Kingdom)) #+ geom_jitter() + 
+theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+#Boxplot parsed reads
+subset_parsed_all <- MetaCzechBayesian %>% filter(N_reads > 100, Bayesian_D_max > 0.05, Bayesian_phi > 100, Bayesian_z > 2, Bayesian_D_max_std < 0.10)
+
+p6d <- subset_parsed_all %>%
+  mutate(Depth2 = fct_relevel(Depth2,
+                              "196","151","134","116","107","64")) %>%
+  ggplot(aes(x=Bayesian_D_max, y=Depth2)) + geom_boxplot(aes(x=Bayesian_D_max, y=Depth2, col=Kingdom)) #+ geom_jitter() +
+theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + scale_x_continuous(breaks =seq(0,0.4, by = 0.10), limits=c(0,0.4))
+
+grid.arrange(p6, p6,
+             ncol = 2, nrow = 1, top="Title")
+
+##Scatter Plots Bayesian D-max and Mean Length most abundant taxa
+#metaDMG_make wide table - abundance indexes
 sample2 <- subset_dataset$sample
 dmax <- subset_dataset$Bayesian_D_max
 taxid2 <- subset_dataset$tax_name
@@ -150,7 +213,7 @@ length(levels(subset100_species$sample))
 magic.palette <- c("#9A32CD", "#00CD00", "#050505", "#CD3333", "#008B00", "#1C86EE", "#00EEEE", "#EEB422", "#A3A3A3", "#00008B", "#EE6A50")    # defining 7 colours
 names(magic.palette) <- levels(subset100_species$sample)                                                    
 
-#Microbial Species Bayesian D-max vs Bayesian_z
+##Microbial Species Bayesian D-max vs Bayesian_z
 # counting number of unique samples for number of different symbols
 f <- length(unique(subset100_species$sample))
 #plotting  D_max vs lambda_LR
@@ -161,7 +224,7 @@ p1 <- ggplot(subset100_species, aes(y=Bayesian_D_max, x=Bayesian_z)) + geom_poin
 p1 + theme_minimal()
 #+ scale_x_continuous(breaks =seq(0,150, by=10), limits=c(0,150)) + scale_y_continuous(breaks =seq(0,0.6, by=0.05))
 
-#Microbial Species Barplot Dmax
+##Microbial Species Barplot Dmax
 Depth2 <- read.csv ("/path_to_metadata/VM_Sediment_context.csv", sep=";") 
 
 subset100_species$new <- Depth2$depth_cm[match(subset100_species$sample, Depth2$sample_ID)]
