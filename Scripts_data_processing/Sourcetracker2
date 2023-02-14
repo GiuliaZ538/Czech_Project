@@ -1,6 +1,6 @@
-########python script Sourcetracker2
-#making sourcetracker input files
+########python script Sourcetracker2##########
 
+#making sourcetracker input files
 import pandas as pd
 
 ####parameter
