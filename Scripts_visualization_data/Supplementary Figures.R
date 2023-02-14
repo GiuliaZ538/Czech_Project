@@ -10,7 +10,7 @@ library (readr)
 library(tidytext)
 
 #MawSpecies_BARPLOT_meanlength
-metaDMG_aMaw_all <- read_csv("~/Documents/COPENHAGEN/PROGETTO/PAPER-CZECH_REPUBLIC/MICROBIAL_R_PLOTS/VM_metaDMG-aMaw.csv")
+metaDMG_aMaw_all <- read_csv("/path_to_metaDMG_output/VM_metaDMG-aMaw.csv")
 subset100_species <- metaDMG_aMaw_all %>% filter(N_reads>100, grepl("\\bspecies\\b", tax_rank))
 
 # Magic-palette
@@ -33,7 +33,7 @@ p1 + theme_minimal()
 #+ scale_x_continuous(breaks =seq(0,150, by=10), limits=c(0,150)) + scale_y_continuous(breaks =seq(0,0.6, by=0.05))
 
 #MawSpecies_Barplot_Dmax
-Depth2 <- read.csv ("/Users/mxd270/Documents/COPENHAGEN/PROGETTOSSDNA/BIOINFORMATICS/CZECH-REUBLIC/CZECH_3/VM_Sediment_context.csv", sep=";") 
+Depth2 <- read.csv ("/path_to_metadata/VM_Sediment_context.csv", sep=";") 
 
 subset100_species$new <- Depth2$depth_cm[match(subset100_species$sample, Depth2$sample_ID)]
 names(subset100_species)[names(subset100_species) == 'new'] <- 'Depth'
