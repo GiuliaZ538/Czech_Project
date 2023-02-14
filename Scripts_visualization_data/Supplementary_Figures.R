@@ -133,13 +133,37 @@ grid.arrange(p1, p1a, p1b, ncol = 3, nrow = 1)
 
 ####Supplementary Figures 3
 ##Read Length Distribution
+# grepping read lengths from lca output of metaDMG and sorting (extracted reads that taxa), counting unique lengths on server, example:
+grep 'nameGenus' nameafile.lca.txt | cut -f9 -d: | sort | uniq -c | sort -k2 -n > Genus.readLength.txt
 
+#download data and input
+Genus1 <- read_table("Sus.readLength.txt", col_names = FALSE)
+Genus2 <- read_table("Ovis.readLength.txt", col_names = FALSE)
+Genus3 <- read_table("Bos.readLength.txt", col_names = FALSE)
+Genus4 <- read_table("Homo.readLength.txt", col_names = FALSE)
+...
+
+#Remove higher than bp 80
+Genus1 <- Genus1[-c(52), ]
+
+##One plot
+d1 <- rbind(Genus1, Genus2, Genus3, Genus4,..)
+colnames(d1) <- c("Number_of_reads", "Read_length")
+
+#Multiple plots (Facets)
+pdf("Readlengths.pdf", height = 6,width = 7.5)
+
+p1 <- ggplot(d1, aes(Read_length, Number_of_reads)) + geom_point(stat="identity", col ="Dark green", alpha = 0.7)
+p1 + xlab("Read length (basepairs Bp)")+ 
+  ylab("Number of reads") + theme_bw()+ ggtitle("Readlength") + facet_wrap(~Taxa, scales="free_y") + 
++ theme(plot.title=element_text(size=12, hjust=0.5, vjust=0.5, face='bold'))
+dev.off()
 
 ##Boxplot Depth vs Bayesian D-max
 #Boxplot all reads
 subset_all_genus <- MetaCzechBayesian %>% filter(D_max > 0.0000, N_reads > 100, grepl("VM", sample), grepl("\\bgenus\\b", tax_rank))
 
-p6d <- subset_all_genus %>%
+p1<- subset_all_genus %>%
   mutate(Depth = fct_relevel(Depth,
                              "236","222","196","185","151","134","116","107","64", "26", "18")) %>%
   ggplot(aes(x=D_max, y=Depth)) + geom_boxplot(aes(x=D_max, y=Depth, col=Kingdom)) #+ geom_jitter() + 
@@ -148,13 +172,13 @@ theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjus
 #Boxplot parsed reads
 subset_parsed_all <- MetaCzechBayesian %>% filter(N_reads > 100, Bayesian_D_max > 0.05, Bayesian_phi > 100, Bayesian_z > 2, Bayesian_D_max_std < 0.10)
 
-p6d <- subset_parsed_all %>%
+p2 <- subset_parsed_all %>%
   mutate(Depth2 = fct_relevel(Depth2,
                               "196","151","134","116","107","64")) %>%
   ggplot(aes(x=Bayesian_D_max, y=Depth2)) + geom_boxplot(aes(x=Bayesian_D_max, y=Depth2, col=Kingdom)) #+ geom_jitter() +
 theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + scale_x_continuous(breaks =seq(0,0.4, by = 0.10), limits=c(0,0.4))
 
-grid.arrange(p6, p6,
+grid.arrange(p1, p2,
              ncol = 2, nrow = 1, top="Title")
 
 ##Scatter Plots Bayesian D-max and Mean Length most abundant taxa
@@ -171,7 +195,7 @@ subset_wide_filtered2 <- subset_wide2 %>% filter(N_reads > 1000)
 
 #Scatter plot + standard deviation D-max
 pd <- position_dodge(0.5)
-p11 <- subset_wide_filtered1 %>%
+p1 <- subset_wide_filtered1 %>%
   mutate(sample = fct_relevel(sample,
                               "VM-19","VM-17","VM-15","VM-14"))%>%
   ggplot(aes(x=Bayesian_D_max, y=sample, colour=tax_name)) + 
@@ -181,11 +205,11 @@ p11 <- subset_wide_filtered1 %>%
   #scale_x_continuous(breaks = seq(0,0.15, by=0.05), limits = c(0,0.15))+
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle("Bayesian D-max by depth") + xlab ("Bayesian D-max")+ ylab ("Sample") # labs(colour="Tax")
-p11
+p1
 
 #Scatter plot + standard deviation Mean length
 pd <- position_dodge(0.5)
-p12 <- subset_wide_filtered2 %>%
+p2 <- subset_wide_filtered2 %>%
   mutate(sample = fct_relevel(sample,
                               "VM-19","VM-17","VM-15","VM-14"))%>%
   ggplot(aes(x=mean_L, y=sample, colour=tax_name)) + 
@@ -195,9 +219,9 @@ p12 <- subset_wide_filtered2 %>%
   scale_x_continuous(breaks = seq(30,90, by=20), limits = c(30,90))+
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + ggtitle("Mean Length") + xlab ("Mean Length")+ ylab ("Sample") # labs(colour="Tax")
-p12
+p2
 
-grid.arrange(p11, p12,
+grid.arrange(p1, p2,
              ncol = 2, nrow = 1, top="Title")
 
 ###Supplementary Figures 5
@@ -234,21 +258,21 @@ write.csv(subset100_species, file = "subset100_species.csv")
 subset100_species$Depth <- as.factor(subset100_species$Depth)
 
 #Mean_Length
-p6d <- subset100_species %>%
+p2 <- subset100_species %>%
   mutate(Depth = fct_relevel(Depth,
                              "236","222","196","185","151","134","116","107","64", "26", "18")) %>%
   ggplot(aes(x=mean_L, y=Depth)) + geom_boxplot(aes(x=mean_L, y=Depth, colour=sample))+ scale_colour_manual(values = magic.palette,name = "Sample") + 
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 #+ scale_x_continuous(breaks =seq(0,0.4, by = 0.10), limits=c(0,0.4))
-p6d 
+p2 
 
 #D-max
-p7d <- subset100_species %>%
+p3 <- subset100_species %>%
   mutate(Depth = fct_relevel(Depth,
                              "236","222","196","185","151","134","116","107","64", "26", "18")) %>%
   ggplot(aes(x=Bayesian_D_max, y=Depth)) + geom_boxplot(aes(x=Bayesian_D_max, y=Depth, colour=sample))+ scale_colour_manual(values = magic.palette,name = "Sample") + 
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-p7d 
+p3
 
-grid.arrange(p6d, p7d, 
+grid.arrange(p2, p3, 
              ncol = 2, nrow = 1)
