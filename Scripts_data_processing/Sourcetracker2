@@ -1,5 +1,5 @@
+########python script Sourcetracker2
 #making sourcetracker input files
-####python script######
 
 import pandas as pd
 
