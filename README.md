@@ -4,4 +4,10 @@
 This code are analyses that accompanies the Zampirolo et al.. It consists of bash and R scripts reporting raw data processing, phylogenetic analyses
 and data visualization for metaDMG in R.
 
+|Scripts Data Processing|
+|----------------------|
+| File | Content |
+|------|---------|
+|Holi.sh|Holi pipeline for quality check and mapping reads|
+
 
