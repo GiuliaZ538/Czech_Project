@@ -1,3 +1,99 @@
+library(dplyr)
+library (readr)
+library(ggplot2)
+library(tidyverse)
+library(scales)
+library(vegan)
+library(rioja)
+library(readxl)
+library(yaml)
+library(data.table)
+library(gridExtra)
+library(forcats)
+library(tidytext)
+
+#####Supplementary Figures 2
+##Scatter plot Discarded
+#subset
+subset_plant <- MetaCzechBayesian %>% filter(D_max > 0.0000, N_reads > 100,  grepl("Viridiplant",tax_path), grepl("VM", sample), grepl("\\bgenus\\b", tax_rank))
+subset_animal <- MetaCzechBayesian %>% filter(D_max > 0.0000, N_reads > 100,  grepl("Metazoa",tax_path), grepl("VM", sample), grepl("\\bgenus\\b", tax_rank))
+
+#creating subset for low abundance/high abundance taxa for better visualization
+subset_plant1 <- subset_plant %>% filter(N_reads < 200) 
+subset_plant2 <- subset_plant %>% filter(N_reads > 200) 
+
+subset_plant_discarded1 <- subset_plant1 %>% filter(Bayesian_D_max < 0.05, Bayesian_z < 2 )
+subset_plant_discarded2 <- subset_plant2 %>% filter(Bayesian_D_max < 0.05, Bayesian_z < 2 )
+subset_animal_discarded <- subset_plant %>% filter(Bayesian_D_max < 0.05, Bayesian_z < 2 )
+
+# Create Color Palette for animal taxa
+subset_animal_discarded$tax_name <- as.factor(subset_animal_discarded$tax_name) 
+length(levels(subset_animal_discarded$tax_name))  
+magic.palette <- c(Bison ="#8B2323", Bos = "#EE7600", Bubalus = "#458B00", Canis = "#ABABAB", Capra= "#00008B", Dendroctonus = "#8B4726", Homo = "#79CDCD", Odocoileus = "#B2DFEE", Ovis = "#6CA6CD", Rangifer = "#8A2BE2", Rhagoletis = "#EEC591",Spodoptera = "#C71585", Sus = "#EEA2AD")
+names(magic.palette) <- levels(subset_animal_discarded$tax_name) 
+
+# Create shape selection for samples
+subset_animal_discarded$sample <- as.factor(subset_animal_discarded$sample) 
+length(levels(subset_animal_discarded$sample))
+magic.shape <- c(6,15,16,17,18,4,7,8,3,10)
+names(magic.shape) <- levels(subset_animal_discarded$sample) 
+
+#Create Color Palette for plant taxa
+library(RColorBrewer)
+display.brewer.all()
+library(RColorBrewer)
+n <- 42
+qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+pie(rep(1,n), col=sample(col_vector, n))
+
+subset_plant_discarded$tax_name <- as.factor(subset_plant_discarded$tax_name) 
+length(levels(subset_plant_discarded$tax_name))    
+magic.palette2 <- col_vector
+names(magic.palette2) <- levels(subset_plant_discarded$tax_name) 
+
+# Create shape selection for samples
+subset_plant_discarded$sample <- as.factor(subset_plant_discarded$sample) 
+length(levels(subset_plant_discarded$sample))  
+magic.shape2 <- c(6,15,16,17,18,4,7,8,3,10)
+names(magic.shape2) <- levels(subset_plant_discarded$sample) 
+
+#Scatter plot D_max vs Bayesian_z
+p1 <- ggplot(subset_animal_discarded, aes(y=Bayesian_D_max, x=Bayesian_z)) + 
+  geom_point(aes(col=tax_name, size=N_reads, shape=sample), show.legend = FALSE)+
+  scale_size_continuous(range = c(3, 8))+
+  scale_shape_manual(values = magic.shape,name = "Sample") + 
+  scale_colour_manual (values = magic.palette,name = "Tax name") +
+  scale_y_continuous (breaks = seq(0,0.150, by=0.025), limits = c(0,0.150))+
+  guides(color = guide_legend(override.aes = list(size = 5)))+
+  guides(shape = guide_legend(override.aes = list(size = 5)))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + theme_minimal()
+p1
+
+p1a <- ggplot(subset_plant_discarded, aes(y=Bayesian_D_max, x=Bayesian_z)) + 
+  geom_point(aes(col=tax_name, size=N_reads, shape=sample), show.legend = FALSE)+
+  scale_size_continuous(range = c(3, 8))+
+  scale_shape_manual(values = magic.shape2,name = "Sample") + 
+  scale_colour_manual (values = magic.palette2,name = "Tax name") +
+  scale_y_continuous (breaks = seq(0,0.125, by=0.025), limits = c(0,0.125))+
+  guides(color = guide_legend(override.aes = list(size = 5)))+
+  guides(shape = guide_legend(override.aes = list(size = 5)))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + theme_minimal()
+p1a
+
+p1b <- ggplot(VM_Virid100_DISCARDED2below, aes(y=Bayesian_D_max, x=Bayesian_z)) + 
+  geom_point(aes(col=tax_name, size=N_reads, shape=sample), show.legend = FALSE)+
+  scale_size_continuous(range = c(3, 8))+
+  scale_shape_manual(values = magic.shape2,name = "Sample") + 
+  scale_colour_manual (values = magic.palette2,name = "Tax name") +
+  scale_y_continuous (breaks = seq(0,0.125, by=0.025), limits = c(0,0.125))+
+  guides(color = guide_legend(override.aes = list(size = 5)))+
+  guides(shape = guide_legend(override.aes = list(size = 5)))+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust =1)) + theme_minimal()
+p1b
+
+grid.arrange(p1, p1a, p1b, ncol = 3, nrow = 1)
+
 ###Supplementary Figures 3
 ######metaDMG_make wide table - abundance indexes
 sample2 <- subset_dataset$sample
@@ -42,28 +138,19 @@ grid.arrange(p11, p12,
              ncol = 2, nrow = 1, top="Title")
 
 ###Supplementary Figures 5
-library(reshape2)
-library(tidyverse)
-library(data.table)
-library(dplyr)
-library(ggplot2)
-library(forcats)
-library (readr)
-library(tidytext)
-
 #MawSpecies_BARPLOT_meanlength
 metaDMG_aMaw_all <- read_csv("/path_to_metaDMG_output/VM_metaDMG-aMaw.csv")
 subset100_species <- metaDMG_aMaw_all %>% filter(N_reads>100, grepl("\\bspecies\\b", tax_rank))
 
 # Magic-palette
 subset100_species$sample <- as.factor(subset100_species$sample)
-length(levels(subset100_species$sample))    # that's 11 levels 
+length(levels(subset100_species$sample))  
 
 # Create Color Palette
 magic.palette <- c("#9A32CD", "#00CD00", "#050505", "#CD3333", "#008B00", "#1C86EE", "#00EEEE", "#EEB422", "#A3A3A3", "#00008B", "#EE6A50")    # defining 7 colours
 names(magic.palette) <- levels(subset100_species$sample)                                                    
 
-#MawSpecies_Damage
+#Microbial Species Bayesian D-max vs Bayesian_z
 # counting number of unique samples for number of different symbols
 f <- length(unique(subset100_species$sample))
 #plotting  D_max vs lambda_LR
@@ -74,7 +161,7 @@ p1 <- ggplot(subset100_species, aes(y=Bayesian_D_max, x=Bayesian_z)) + geom_poin
 p1 + theme_minimal()
 #+ scale_x_continuous(breaks =seq(0,150, by=10), limits=c(0,150)) + scale_y_continuous(breaks =seq(0,0.6, by=0.05))
 
-#MawSpecies_Barplot_Dmax
+#Microbial Species Barplot Dmax
 Depth2 <- read.csv ("/path_to_metadata/VM_Sediment_context.csv", sep=";") 
 
 subset100_species$new <- Depth2$depth_cm[match(subset100_species$sample, Depth2$sample_ID)]
